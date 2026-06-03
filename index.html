@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trader IQ – Welcher Trader-Typ bist du?</title>
+<style>
+  :root{
+    /* Trader IQ Markenfarben */
+    --orange:#ee761a; --orange-d:#d4620c; --orange-l:#fff4ea;
+    --charcoal:#2a2928; --ink:#1d1e22; --muted:#6b7280; --muted2:#9aa3b2;
+    --bg:#f4f6fa; --card:#ffffff; --soft:#f7f9fc; --line:#e6e9f0;
+    --good:#2f9e6e; --bad:#e0563b;
+    /* Dimensions-Farben (auf Hell abgestimmt) */
+    --o:#e8643c; --d:#2f9e6e; --r:#e0a32a; --k:#3b6fb0; --i:#8b5cf6; --a:#0e9aa7; --y:#ef6c00; --g:#4c9a51;
+    --self-h:#6366f1; --self-s:#2f9e6e;
+    --shadow:0 12px 34px rgba(31,41,72,.10); --shadow-l:0 4px 14px rgba(31,41,72,.06);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:860px;margin:0 auto;padding:24px 20px 90px}
+  /* Brand bar */
+  .brandbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .logo-img{height:38px;width:auto;display:block}
+  .brandbar .sub{color:var(--muted);font-size:13px;font-weight:600;letter-spacing:.3px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  /* HERO */
+  .hero{padding:40px 38px;position:relative;overflow:hidden}
+  .hero:before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--orange),#ffb066)}
+  .kicker{display:inline-block;background:var(--orange-l);color:var(--orange-d);font-weight:700;font-size:13px;padding:7px 13px;border-radius:999px;border:1px solid #f6dcc2}
+  .hero h1{font-size:36px;line-height:1.12;margin:16px 0 12px;letter-spacing:-.6px;color:var(--charcoal)}
+  .hero h1 em{font-style:normal;color:var(--orange)}
+  .hero p{color:#4b5565;font-size:16.5px;max-width:62ch;margin:0}
+  .pills{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 4px}
+  .pill{font-size:13px;color:var(--ink);background:var(--soft);border:1px solid var(--line);padding:8px 13px;border-radius:999px;font-weight:600}
+  .meta{display:flex;gap:30px;flex-wrap:wrap;margin-top:26px}
+  .meta div{color:var(--muted);font-size:13px}
+  .meta b{color:var(--orange);display:block;font-size:24px;line-height:1.1}
+  .btn{appearance:none;border:0;cursor:pointer;font-weight:700;font-size:16px;color:#fff;
+    background:var(--orange);padding:15px 28px;border-radius:13px;box-shadow:0 8px 22px rgba(238,118,26,.32);
+    transition:transform .15s,box-shadow .15s,background .15s}
+  .btn:hover{transform:translateY(-2px);background:var(--orange-d);box-shadow:0 14px 30px rgba(238,118,26,.4)}
+  .btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+  .btn.ghost:hover{border-color:var(--orange);color:var(--orange-d);background:#fff}
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:28px;align-items:center}
+  .hint{color:var(--muted);font-size:13px}
+  /* PROGRESS */
+  .progress-shell{position:sticky;top:0;z-index:9;padding:14px 0 12px;background:linear-gradient(180deg,var(--bg) 70%,rgba(244,246,250,0))}
+  .progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px;color:var(--muted);font-weight:600}
+  .progress-top .dimnow{color:var(--orange-d)}
+  .bar{height:9px;border-radius:99px;background:#e9edf4;overflow:hidden;border:1px solid var(--line)}
+  .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--orange),#ffac5c);transition:width .4s cubic-bezier(.4,0,.2,1)}
+  /* PAGE OF QUESTIONS */
+  .qpage{padding:14px 30px 28px}
+  .qitem{padding:24px 6px;border-bottom:1px solid var(--line)}
+  .qitem:last-child{border-bottom:0}
+  .qitem .qnum{font-size:12px;font-weight:700;letter-spacing:1px;color:var(--orange);text-transform:uppercase}
+  .qitem .qnum .dim{color:var(--muted2);margin-left:8px}
+  .qitem h3{font-size:19px;line-height:1.35;margin:8px 0 20px;color:var(--charcoal);font-weight:650}
+  .likert{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .likert .lab{font-size:11.5px;color:var(--muted);width:62px;flex:none;line-height:1.25}
+  .likert .lab.r{text-align:right}
+  .dots{display:flex;align-items:center;gap:10px;flex:1;justify-content:center}
+  .dot{border-radius:50%;border:2px solid #d4dae6;background:#fff;cursor:pointer;flex:none;
+    transition:transform .12s,border-color .15s,background .15s}
+  .dot:hover{transform:scale(1.14)}
+  .dot.s1{width:46px;height:46px}.dot.s2{width:38px;height:38px}.dot.s3{width:31px;height:31px}
+  .dot.agree{border-color:var(--good)} .dot.agree.sel{background:var(--good);border-color:var(--good)}
+  .dot.disagree{border-color:#3b82c4} .dot.disagree.sel{background:#3b82c4;border-color:#3b82c4}
+  .dot.neutral{border-color:#9aa3b2} .dot.neutral.sel{background:#9aa3b2}
+  .dot.sel{box-shadow:0 0 0 4px rgba(238,118,26,.14)}
+  .qnav{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:22px 30px 26px;border-top:1px solid var(--line)}
+  .qnav .left{display:flex;gap:10px}
+  /* RESULT */
+  .res-hero{padding:38px;text-align:center;position:relative;overflow:hidden}
+  .res-hero:before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--orange),#ffb066)}
+  .type-emoji{font-size:62px;line-height:1;margin-bottom:6px}
+  .code{font-family:ui-monospace,Menlo,monospace;letter-spacing:3px;color:var(--orange-d);font-weight:700;font-size:14px}
+  .res-hero h1{font-size:34px;margin:8px 0 4px;letter-spacing:-.5px;color:var(--charcoal)}
+  .fam{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:2px;font-weight:700}
+  .tagline{font-size:18px;color:#3c4350;max-width:56ch;margin:16px auto 0;font-style:italic}
+  .scoremini{display:inline-flex;gap:6px;align-items:center;background:var(--orange-l);border:1px solid #f6dcc2;
+    padding:7px 14px;border-radius:999px;font-size:12.5px;color:var(--orange-d);margin-top:16px;font-weight:600}
+  .section{padding:28px 34px}
+  .section h3{font-size:12.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--orange-d);margin:0 0 16px;font-weight:700}
+  .section p{color:#3c4350}
+  .dims{display:flex;flex-direction:column;gap:22px}
+  .dimrow .dlabels{display:flex;justify-content:space-between;font-size:13px;margin-bottom:7px}
+  .dlabels .on{font-weight:700;color:var(--ink)} .dlabels .off{color:var(--muted2)}
+  .dlabels .mid{color:var(--muted2);font-size:11px;letter-spacing:1px}
+  .track{height:13px;border-radius:99px;background:#eef1f7;position:relative;border:1px solid var(--line);overflow:hidden}
+  .track>i{position:absolute;top:0;bottom:0;border-radius:99px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+  .track .midl{position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:#d7dce6;transform:translateX(-50%)}
+  .dimrow .pct{font-size:12px;color:var(--muted);margin-top:6px;text-align:center}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr}.hero,.qpage,.qnav,.section,.res-hero{padding-left:20px;padding-right:20px}.hero h1{font-size:28px}.likert .lab{width:52px}}
+  .box{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .box h4{margin:0 0 12px;font-size:15px;display:flex;align-items:center;gap:8px}
+  .box.s h4{color:var(--good)} .box.r h4{color:var(--bad)} .box.t h4{color:var(--orange-d)}
+  .box ul{margin:0;padding-left:18px;color:#3c4350;font-size:14.5px}
+  .box ul li{margin-bottom:8px}
+  .selfimg{background:var(--orange-l);border:1px solid #f6dcc2;border-radius:14px;padding:20px 22px;margin-top:6px;color:#5a4632}
+  .selfimg b{color:var(--orange-d)}
+  .footer-actions{display:flex;gap:12px;flex-wrap:wrap;padding:24px 34px 0}
+  .disc{color:var(--muted);font-size:12px;padding:22px 34px 24px;text-align:center}
+  .hide{display:none!important}
+  .fade{animation:fade .35s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brandbar">
+    <img class="logo-img" src="https://traderiq.net/wp-content/uploads/2024/10/cropped-Logo-Trader-IQ-500-pix-1-1.png" alt="Trader IQ">
+    <span class="sub">Trader-Typ Assessment</span>
+  </div>
+
+  <!-- ============ INTRO ============ -->
+  <section id="intro" class="card hero fade">
+    <span class="kicker">⏱ ca. 7–10 Minuten · 48 Aussagen</span>
+    <h1>Welcher <em>Trader-Typ</em> bist du?</h1>
+    <p>Dieser Test zeigt dir, wie du wirklich tickst, wenn echtes Geld auf dem Spiel steht – jenseits von Strategien und Indikatoren. Du erfährst, wo deine psychologischen Stärken liegen, welche blinden Flecken dich Geld kosten und woran du konkret arbeiten solltest.</p>
+    <div class="pills">
+      <span class="pill">🧠 Trading-Psychologie</span>
+      <span class="pill">⚖️ Risiko &amp; Money-Management</span>
+      <span class="pill">🎯 Entscheidungsstil</span>
+      <span class="pill">📈 Stärken &amp; Entwicklung</span>
+    </div>
+    <div class="meta">
+      <div><b>16</b>Trader-Typen</div>
+      <div><b>5</b>Dimensionen</div>
+      <div><b>48</b>Aussagen</div>
+      <div><b>100%</b>anonym</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="start()">Test starten →</button>
+      <span class="hint">Antworte ehrlich – es gibt keine „richtigen" Antworten.</span>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section id="quiz" class="hide">
+    <div class="progress-shell">
+      <div class="progress-top">
+        <span id="qcount">Seite 1 von 10</span>
+        <span class="dimnow" id="qprog">0 / 48 beantwortet</span>
+      </div>
+      <div class="bar"><i id="barfill"></i></div>
+    </div>
+    <div class="card fade" id="qcard">
+      <div class="qpage" id="qpage"></div>
+      <div class="qnav">
+        <div class="left">
+          <button class="btn ghost" id="prevbtn" onclick="prevPage()">← Zurück</button>
+        </div>
+        <span class="hint" id="pagehint"></span>
+        <button class="btn" id="nextbtn" onclick="nextPage()" disabled>Weiter →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RESULT ============ -->
+  <section id="result" class="hide">
+    <div class="card res-hero fade">
+      <div class="type-emoji" id="rEmoji">🎯</div>
+      <div class="code" id="rCode">O-K-A-G</div>
+      <h1 id="rName">Der Stratege</h1>
+      <div class="fam" id="rFam">Familie der Taktiker</div>
+      <p class="tagline" id="rTagline"></p>
+      <div class="scoremini" id="rSelfMini"></div>
+    </div>
+
+    <div class="card section" style="margin-top:18px">
+      <h3>Wer du bist</h3>
+      <p id="rDesc"></p>
+    </div>
+
+    <div class="card section" style="margin-top:18px">
+      <h3>Dein Profil über die 5 Dimensionen</h3>
+      <div class="dims" id="rDims"></div>
+    </div>
+
+    <div class="card section" style="margin-top:18px">
+      <h3>Stärken &amp; Risiken</h3>
+      <div class="grid2">
+        <div class="box s"><h4>💪 Deine Stärken</h4><ul id="rStrengths"></ul></div>
+        <div class="box r"><h4>⚠️ Deine Risiken</h4><ul id="rRisks"></ul></div>
+      </div>
+    </div>
+
+    <div class="card section" style="margin-top:18px">
+      <h3>Woran du arbeiten solltest</h3>
+      <div class="box t"><h4>🚀 Konkrete Empfehlungen</h4><ul id="rTips"></ul></div>
+      <div class="selfimg" id="rSelfBox" style="margin-top:18px"></div>
+    </div>
+
+    <div class="card section" style="margin-top:18px">
+      <h3>Dein Reflexions-Impuls</h3>
+      <p id="rReflect"></p>
+    </div>
+
+    <div class="card" style="margin-top:18px;padding-bottom:6px">
+      <div class="footer-actions">
+        <button class="btn" onclick="restart()">Test wiederholen</button>
+        <button class="btn ghost" onclick="copyResult()">Ergebnis kopieren</button>
+        <button class="btn ghost" onclick="window.print()">Als PDF speichern</button>
+      </div>
+      <div class="disc">Dieser Test dient der Selbstreflexion und ist keine Anlageberatung. Trading ist mit erheblichen Risiken verbunden. © Trader IQ GmbH</div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* =====================================================================
+   TRADER IQ – Modell, Fragen & Auswertung
+   Dimensionen (Pol + / Pol −):
+     risk: Offensiv(O,+)/Defensiv(D,−)  emotion: Reaktiv(R,+)/Kontrolliert(K,−)
+     decision: Intuitiv(I,+)/Analytisch(A,−)  tempo: Dynamisch(Y,+)/Geduldig(G,−)
+     self: Hinterfragend(H,+)/Selbstsicher(S,−)
+   dir=+1: Zustimmung→Pol+, dir=−1: Zustimmung→Pol−
+===================================================================== */
+const DIM = {
+  risk:    {name:"Risiko",      pos:{L:"O",label:"Offensiv",  color:"var(--o)"}, neg:{L:"D",label:"Defensiv",   color:"var(--d)"}},
+  emotion: {name:"Emotion",     pos:{L:"R",label:"Reaktiv",   color:"var(--r)"}, neg:{L:"K",label:"Kontrolliert",color:"var(--k)"}},
+  decision:{name:"Entscheidung",pos:{L:"I",label:"Intuitiv",  color:"var(--i)"}, neg:{L:"A",label:"Analytisch",  color:"var(--a)"}},
+  tempo:   {name:"Tempo",       pos:{L:"Y",label:"Dynamisch", color:"var(--y)"}, neg:{L:"G",label:"Geduldig",    color:"var(--g)"}},
+  self:    {name:"Selbstbild",  pos:{L:"H",label:"Hinterfragend",color:"var(--self-h)"}, neg:{L:"S",label:"Selbstsicher",color:"var(--self-s)"}}
+};
+
+const QUESTIONS = [
+  {t:"Ein hoher möglicher Gewinn ist mir wichtiger als der Schutz vor Verlusten.", dim:"risk", dir:+1},
+  {t:"Ich bin bereit, einen großen Teil meines Kapitals in einen einzigen Trade zu setzen, wenn ich überzeugt bin.", dim:"risk", dir:+1},
+  {t:"Bevor ich eine Position eröffne, lege ich zuerst fest, wie viel ich maximal verlieren darf.", dim:"risk", dir:-1},
+  {t:"Starke Kursschwankungen reizen mich mehr, als dass sie mich abschrecken.", dim:"risk", dir:+1},
+  {t:"Ich fühle mich am wohlsten, wenn nur ein kleiner Teil meines Depots Risiko ausgesetzt ist.", dim:"risk", dir:-1},
+  {t:"Die Aussicht, schnell viel zu verdienen, wiegt für mich mögliche Rückschläge auf.", dim:"risk", dir:+1},
+  {t:"Kapitalerhalt hat für mich Vorrang vor maximaler Rendite.", dim:"risk", dir:-1},
+  {t:"Ich erhöhe meine Positionsgröße gern, wenn ein Trade gut für mich läuft.", dim:"risk", dir:+1},
+  {t:"Enge Stop-Loss-Grenzen sind für mich selbstverständlich.", dim:"risk", dir:-1},
+  {t:"Ich würde lieber eine Chance verpassen, als ein zu großes Risiko einzugehen.", dim:"risk", dir:-1},
+  {t:"Nach einem Verlust fällt es mir schwer, ruhig zu bleiben.", dim:"emotion", dir:+1},
+  {t:"Ich halte mich auch unter Druck strikt an meinen Plan.", dim:"emotion", dir:-1},
+  {t:"Wenn ein Kurs plötzlich steigt, verspüre ich den Drang, sofort mitzumachen.", dim:"emotion", dir:+1},
+  {t:"Meine Entscheidungen treffe ich unabhängig von meiner Tagesform.", dim:"emotion", dir:-1},
+  {t:"Ein paar Verluste in Folge bringen mich emotional aus dem Gleichgewicht.", dim:"emotion", dir:+1},
+  {t:"Ich kann einen Trade ohne Reue schließen, auch wenn er danach in meine Richtung läuft.", dim:"emotion", dir:-1},
+  {t:"Gewinne verleiten mich dazu, übermütig zu werden.", dim:"emotion", dir:+1},
+  {t:"Auch bei heftigen Marktbewegungen bleibe ich innerlich gelassen.", dim:"emotion", dir:-1},
+  {t:"Wenn ich nervös bin, kontrolliere ich meine Positionen deutlich häufiger.", dim:"emotion", dir:+1},
+  {t:"Rückschläge hake ich emotional schnell ab und mache nüchtern weiter.", dim:"emotion", dir:-1},
+  {t:"Ich verlasse mich bei Trades oft auf mein Bauchgefühl.", dim:"decision", dir:+1},
+  {t:"Bevor ich handle, analysiere ich Daten, Charts oder Kennzahlen gründlich.", dim:"decision", dir:-1},
+  {t:"Ein gutes Gespür für den Markt ist mir wichtiger als starre Regeln.", dim:"decision", dir:+1},
+  {t:"Ich folge einem klar definierten, regelbasierten System.", dim:"decision", dir:-1},
+  {t:"Manchmal weiß ich einfach, dass ein Trade richtig ist, ohne es begründen zu können.", dim:"decision", dir:+1},
+  {t:"Ich dokumentiere und werte meine Trades systematisch aus.", dim:"decision", dir:-1},
+  {t:"Ich passe meine Strategie spontan an das aktuelle Marktgefühl an.", dim:"decision", dir:+1},
+  {t:"Eine Entscheidung treffe ich erst, wenn die Zahlen sie eindeutig stützen.", dim:"decision", dir:-1},
+  {t:"Intuition hat mir schon oft bessere Ergebnisse gebracht als reine Analyse.", dim:"decision", dir:+1},
+  {t:"Ich vertraue Backtests und Statistiken mehr als meinem Gefühl.", dim:"decision", dir:-1},
+  {t:"Ich handle am liebsten kurzfristig und schließe Positionen oft noch am selben Tag.", dim:"tempo", dir:+1},
+  {t:"Ich kann eine vielversprechende Position über Wochen oder Monate halten.", dim:"tempo", dir:-1},
+  {t:"Langes Warten auf den richtigen Einstieg langweilt mich schnell.", dim:"tempo", dir:+1},
+  {t:"Geduld ist eine meiner größten Stärken beim Traden.", dim:"tempo", dir:-1},
+  {t:"Ich möchte am liebsten ständig aktiv im Markt sein und etwas tun.", dim:"tempo", dir:+1},
+  {t:"Ich warte lieber auf wenige, dafür sehr gute Gelegenheiten.", dim:"tempo", dir:-1},
+  {t:"Schnelle Marktbewegungen reizen mich mehr als ruhige, lange Trends.", dim:"tempo", dir:+1},
+  {t:"Ich sitze eine Position trotz Schwankungen lange aus, solange meine These stimmt.", dim:"tempo", dir:-1},
+  {t:"Viele kleine Trades sagen mir mehr zu als wenige große.", dim:"tempo", dir:+1},
+  {t:"Ich plane meine Trades über längere Zeiträume hinweg.", dim:"tempo", dir:-1},
+  {t:"Nach einem Trade frage ich mich oft, ob ich richtig gehandelt habe.", dim:"self", dir:+1},
+  {t:"Ich vertraue meinen Fähigkeiten und zweifle selten an meinen Entscheidungen.", dim:"self", dir:-1},
+  {t:"Fehler beschäftigen mich noch lange, nachdem sie passiert sind.", dim:"self", dir:+1},
+  {t:"Auch in einer Pechsträhne bleibt mein Selbstvertrauen stabil.", dim:"self", dir:-1},
+  {t:"Ich vergleiche meine Ergebnisse häufig mit denen anderer Trader.", dim:"self", dir:+1},
+  {t:"Mit meiner Entwicklung als Trader bin ich grundsätzlich zufrieden.", dim:"self", dir:-1},
+  {t:"Der Druck, besser werden zu müssen, begleitet mich fast ständig.", dim:"self", dir:+1},
+  {t:"Ich gehe selbstsicher mit der Unsicherheit am Markt um.", dim:"self", dir:-1}
+];
+
+const TYPES = {
+ "OKAG":{emoji:"♟️",name:"Der Stratege",fam:"Taktiker",
+   tag:"Kalkulierte Offensive mit ruhiger Hand – du schlägst erst zu, wenn das System grünes Licht gibt.",
+   desc:"Du verbindest echte Risikobereitschaft mit einem kühlen Kopf und einem klaren Regelwerk. Große Chancen gehst du bewusst ein, aber niemals planlos – du wartest geduldig auf das Setup, das deine Analyse bestätigt, und handelst dann entschlossen. Diese Mischung aus Mut und Disziplin ist die seltene Kombination, die langfristig erfolgreiche Trader auszeichnet.",
+   strengths:["Diszipliniertes Risiko: Du bist offensiv, ohne kopflos zu werden.","Bleibst auch in Drawdowns ruhig und planbar.","Triffst Entscheidungen datenbasiert statt aus dem Affekt.","Geduld, auf das wirklich gute Setup zu warten."],
+   risks:["Selbstsicherheit kann dich Positionsgrößen unterschätzen lassen.","Du verpasst manchmal schnelle Gelegenheiten, weil du auf Bestätigung wartest.","Tendenz zum Over-Engineering deiner Analyse.","Offensive plus Ruhe kann seltene Extremrisiken verharmlosen."],
+   tips:["Definiere eine harte Obergrenze für Risiko pro Trade und pro Tag.","Führe ein Risiko-Journal: Wie groß waren deine Positionen wirklich?","Teste bewusst, ob etwas mehr Aktivität deine Edge erhöht.","Plane Szenarien für seltene Extremereignisse (Tail-Risk)."]},
+ "OKAY":{emoji:"🎯",name:"Der Scharfschütze",fam:"Taktiker",
+   tag:"Schnell, präzise, datengetrieben – du nutzt kurzfristige Chancen mit chirurgischer Genauigkeit.",
+   desc:"Du bist offensiv und schnell unterwegs, steuerst dein Tempo aber mit einem analytischen, regelbasierten Ansatz. Du liest den Markt in Echtzeit, ziehst rasch deine Schlüsse und setzt sie diszipliniert um. Dein Vorteil liegt in der Geschwindigkeit, mit der du Information in saubere Entscheidungen übersetzt.",
+   strengths:["Schnelle, aber regelbasierte Entscheidungen.","Hohe Konzentration und Reaktionsfähigkeit im Live-Markt.","Emotionale Kontrolle trotz hoher Schlagzahl.","Mut, Chancen sofort zu ergreifen."],
+   risks:["Hohe Frequenz erzeugt Transaktionskosten und Overtrading-Gefahr.","Tempo kann gründliche Analyse verkürzen.","Müdigkeit/Stress untergräbt die Präzision über den Tag.","Offensive Größe bei schnellem Tempo verstärkt Verluste."],
+   tips:["Setze ein tägliches Trade-Limit, um Overtrading zu bremsen.","Miss deine Trefferquote pro Tageszeit – wann bist du am schärfsten?","Baue feste Pausen ein, um Fokus zu erhalten.","Reduziere die Größe, wenn die Frequenz steigt."]},
+ "ORAG":{emoji:"🦅",name:"Der Opportunist",fam:"Taktiker",
+   tag:"Du witterst Gelegenheiten analytisch – aber dein Puls geht mit, wenn es spannend wird.",
+   desc:"Du gehst offensiv und analytisch vor und hast die Geduld, auf gute Setups zu warten. Gleichzeitig reagierst du emotional auf das, was der Markt tut – Aufregung, Gier oder Frust mischen sich in deine sonst nüchterne Analyse. Dein Potenzial ist groß, sobald du deine Gefühle so gut steuerst wie deine Charts.",
+   strengths:["Erkennst Chancen früh und analysierst sie fundiert.","Geduld für das Aussitzen guter Trades.","Mut zur Offensive, wenn sich Gelegenheiten zeigen.","Wachsamkeit – dir entgeht selten eine Bewegung."],
+   risks:["Emotionen kapern gelegentlich deinen analytischen Plan.","Gier kann dich zu groß einsteigen lassen.","Frust nach Verlusten führt zu Revenge-Trades.","Du überdenkst Entscheidungen im Affekt."],
+   tips:["Schreibe vor jedem Trade Einstieg, Stop und Ziel auf – und halte dich daran.","Lege nach Verlusten eine bewusste Cool-down-Phase ein.","Trenne Analyse-Zeit (ruhig) von Handels-Zeit (gefasst).","Nutze Alerts statt ständigem Beobachten, um Impulse zu senken."]},
+ "ORAY":{emoji:"⚡",name:"Der Adrenalin-Analyst",fam:"Taktiker",
+   tag:"Analytischer Kopf, hohes Tempo, viel Gefühl – ein kraftvoller, aber explosiver Mix.",
+   desc:"Du bist offensiv, schnell und analytisch – aber emotional stark beteiligt. Du liebst den Nervenkitzel des Live-Marktes und triffst rasche Entscheidungen auf Datenbasis, lässt dich dabei aber von der Intensität mitreißen. Deine Energie ist deine größte Stärke und gleichzeitig deine größte Gefahr.",
+   strengths:["Enorme Energie und Marktpräsenz.","Schnelle Auffassung kombiniert mit Datenverständnis.","Begeisterungsfähig und lernhungrig.","Reaktionsschnell bei plötzlichen Bewegungen."],
+   risks:["Hohe Gefahr von Overtrading und Tilt.","Emotionen überschreiben im Eifer deine Regeln.","Adrenalin verleitet zu impulsiven Größenanpassungen.","Verluste treffen dich hart und können Ketten auslösen."],
+   tips:["Arbeite mit automatischen Stops und festen Größen – nimm dir die Hand aus dem Spiel.","Definiere ein Stop-for-the-Day nach X Verlusten.","Etabliere ein Pre-Trade-Ritual (Atmen, Checkliste).","Tracke deinen emotionalen Zustand neben jedem Trade."]},
+ "DKAG":{emoji:"🏛️",name:"Der Architekt",fam:"Wächter",
+   tag:"Geduldig, systematisch, kapitalschonend – du baust Vermögen wie ein Bauwerk: Stein für Stein.",
+   desc:"Du bist der Inbegriff des disziplinierten Investors: defensiv im Risiko, kühl im Kopf, analytisch in der Methode und geduldig im Zeithorizont. Du folgst einem durchdachten Plan und lässt dich von Marktlärm nicht beirren. Was dir an Spektakel fehlt, machst du durch Beständigkeit und Robustheit mehr als wett.",
+   strengths:["Hervorragendes Kapital- und Risikomanagement.","Emotional extrem stabil, auch in Krisen.","Konsequent regelbasiertes Vorgehen.","Geduld für langfristige Wertentwicklung."],
+   risks:["Übervorsicht lässt dich gute Chancen auslassen.","Du kannst in Analyse-Paralyse verharren.","Zu enge Risikobudgets bremsen dein Wachstum.","Gefahr, Trends zu spät zu folgen."],
+   tips:["Erlaube dir ein klar abgegrenztes Chancen-Budget für mutigere Trades.","Setze Entscheidungs-Deadlines gegen Analyse-Paralyse.","Prüfe, ob deine Stops zu eng für die normale Marktbewegung sind.","Backteste, ob etwas mehr Risiko deine Rendite spürbar hebt."]},
+ "DKAY":{emoji:"🔬",name:"Der Präzisionsarbeiter",fam:"Wächter",
+   tag:"Vorsichtig und schnell zugleich – du nimmst kleine, saubere Gewinne mit System.",
+   desc:"Du kombinierst defensives Risiko mit hohem Tempo und einem analytischen, regelbasierten Stil. Du jagst keine großen Treffer, sondern viele kleine, kontrollierte Gewinne mit engem Risiko. Deine Stärke ist Konsistenz: Du machst dasselbe Richtige immer wieder.",
+   strengths:["Diszipliniertes Risiko trotz hoher Frequenz.","Konsistente, wiederholbare Routine.","Schnelle Umsetzung klarer Regeln.","Geringe emotionale Schwankung."],
+   risks:["Viele kleine Trades = hohe Kosten, kleine Gewinne.","Defensive Größe begrenzt das Aufwärtspotenzial.","Tempo kann zu mechanischem Overtrading führen.","Gefahr, große Trends zu früh zu verlassen."],
+   tips:["Rechne deine Netto-Rendite nach Gebühren ehrlich durch.","Lass Gewinner gelegentlich bewusst länger laufen.","Prüfe Qualität statt Quantität deiner Setups.","Definiere klare Kriterien, wann ein kleiner Trade ein großer werden darf."]},
+ "DRAG":{emoji:"🛡️",name:"Der Absicherer",fam:"Wächter",
+   tag:"Analytisch und vorsichtig, aber innerlich angespannt – Sicherheit ist dein Anker.",
+   desc:"Du gehst defensiv, geduldig und analytisch vor, reagierst aber emotional empfindlich auf Risiko und Verluste. Dein Sicherheitsbedürfnis schützt dein Kapital, kann aber in Zögern und Selbstzweifel umschlagen. Wenn du deiner eigenen Analyse mehr vertraust, wirst du ruhiger und mutiger.",
+   strengths:["Sehr umsichtiges Risikomanagement.","Gründliche Analyse vor jeder Entscheidung.","Geduld und langfristige Perspektive.","Hohe Sensibilität für Gefahren im Markt."],
+   risks:["Angst vor Verlust verhindert konsequentes Handeln.","Du zögerst Einstiege heraus und verpasst sie.","Verluste belasten dich emotional überdurchschnittlich.","Neigung, gute Trades aus Furcht zu früh zu schließen."],
+   tips:["Vertraue deinem vorab definierten Plan – er ist deine Versicherung.","Beginne mit kleineren Größen, um Handlungsfähigkeit zu trainieren.","Akzeptiere Verluste als eingeplante Betriebskosten.","Feiere konsequente Umsetzung, nicht nur Gewinne."]},
+ "DRAY":{emoji:"📐",name:"Der Sicherheitsdenker",fam:"Wächter",
+   tag:"Schnell, vorsichtig, analytisch – aber dein Kopfkino läuft bei jeder Bewegung mit.",
+   desc:"Du bist defensiv und analytisch, dabei aber tempo-orientiert und emotional reagibel. Du willst nichts verpassen und gleichzeitig nichts verlieren – ein innerer Konflikt, der zu hektischem Hin und Her führen kann. Deine Rettung ist ein klares, vorab fixiertes Regelwerk, das dir Entscheidungen abnimmt.",
+   strengths:["Wachsam und schnell bei Risiken.","Analytische Grundhaltung.","Defensiver Kapitalschutz.","Aufmerksam für Marktdetails."],
+   risks:["Innere Unruhe führt zu hektischem Überhandeln.","Widerspruch zwischen „nichts verpassen“ und „nichts verlieren“.","Emotionale Reaktion auf jede Schwankung.","Selbstzweifel nach Fehlern."],
+   tips:["Reduziere Bildschirmzeit und arbeite mit Alerts.","Lege feste Handelsfenster fest statt Dauerpräsenz.","Schreibe deinen Plan auf und folge ihm mechanisch.","Nutze Checklisten, um Impuls-Trades zu stoppen."]},
+ "OKIG":{emoji:"🧭",name:"Der Visionär",fam:"Pioniere",
+   tag:"Mutige Überzeugung, ruhige Hand, langer Atem – du wettest groß auf deine Marktthese.",
+   desc:"Du handelst offensiv und intuitiv, bleibst dabei aber bemerkenswert gelassen und geduldig. Du entwickelst starke Überzeugungen über die Richtung des Marktes und hast die Nerven, an ihnen festzuhalten. Wenn dein Gespür stimmt, gehörst du zu den Tradern mit den größten Gewinnen – die Kunst ist, dein Bauchgefühl zu überprüfen.",
+   strengths:["Mut zu großen, überzeugten Positionen.","Emotionale Ruhe, um Thesen durchzuhalten.","Gutes Gespür für übergeordnete Marktbewegungen.","Geduld, dem eigenen Bild Zeit zu geben."],
+   risks:["Verliebtheit in die eigene These trotz Gegenbeweis.","Intuition ohne Validierung kann teuer werden.","Große, ungesicherte Positionen bei Irrtum.","Bestätigungsfehler: Du siehst, was du sehen willst."],
+   tips:["Formuliere vorab, was deine These widerlegen würde.","Sichere große Positionen grundsätzlich ab.","Hole eine analytische Gegenmeinung ein, bevor du groß einsteigst.","Führe Buch über Bauch-Trades vs. Realität."]},
+ "OKIY":{emoji:"🌊",name:"Der Instinkt-Trader",fam:"Pioniere",
+   tag:"Du surfst die Welle aus dem Bauch heraus – schnell, mutig und erstaunlich gelassen.",
+   desc:"Du bist offensiv, intuitiv und schnell, behältst aber kühlen Kopf. Du liest den Markt aus dem Gefühl heraus und reagierst blitzschnell, ohne in Panik zu verfallen. Dein Instinkt ist deine Superkraft – solange du ihn durch Erfahrung und Risikoregeln erdest.",
+   strengths:["Schnelles, intuitives Erfassen von Marktstimmung.","Mut und Gelassenheit zugleich.","Flexibel und anpassungsfähig.","Handlungsstark in dynamischen Phasen."],
+   risks:["Bauchentscheidungen ohne nachprüfbare Edge.","Tempo + Offensive verstärken Fehler schnell.","Schwer zu sagen, warum etwas funktioniert (oder nicht).","Overtrading bei hoher Aktivität."],
+   tips:["Dokumentiere deine intuitiven Trades, um echte Muster zu erkennen.","Begrenze Größe und Frequenz mit festen Regeln.","Verbinde dein Gespür mit ein, zwei harten Kennzahlen.","Definiere klare Ausstiegspunkte vor dem Einstieg."]},
+ "ORIG":{emoji:"🏹",name:"Der Jäger",fam:"Pioniere",
+   tag:"Getrieben von Instinkt und Aufregung – du lauerst auf die große Chance und schlägst hart zu.",
+   desc:"Du bist offensiv und intuitiv, mit der Geduld zu warten, aber starker emotionaler Beteiligung. Du jagst die großen Gelegenheiten und fühlst den Markt intensiv – Gier und Aufregung sitzen dir dabei im Nacken. Deine Leidenschaft treibt dich an, kann dich aber auch zu Fall bringen.",
+   strengths:["Gespür für große Gelegenheiten.","Geduld, auf den Moment zu warten.","Mut, beherzt zuzuschlagen.","Hohe Motivation und Einsatzbereitschaft."],
+   risks:["Gier lässt dich zu groß oder zu spät einsteigen.","Emotionale Trades ohne Absicherung.","Frust führt zu Revenge-Trading.","Bauchgefühl wird selten überprüft."],
+   tips:["Lege feste Regeln für maximale Positionsgröße fest.","Definiere vorab dein Ausstiegsszenario – auch nach oben.","Pausiere nach emotionalen Verlusten.","Validiere dein Gespür regelmäßig an echten Daten."]},
+ "ORIY":{emoji:"🔥",name:"Der Draufgänger",fam:"Pioniere",
+   tag:"Schnell, mutig, aus dem Bauch und voller Energie – das aufregendste und riskanteste Profil.",
+   desc:"Du bist offensiv, intuitiv, schnell und emotional voll dabei – ein Adrenalin-Profil in Reinform. Du liebst Action, vertraust deinem Instinkt und zögerst nie lange. Diese Energie kann brillante Trades hervorbringen, ungezügelt aber auch das Konto sprengen. Struktur ist für dich kein Käfig, sondern ein Schutzschild.",
+   strengths:["Enorme Handlungsbereitschaft und Energie.","Schnelles, intuitives Erfassen.","Furchtlos bei Gelegenheiten.","Begeisterung und Lernhunger."],
+   risks:["Höchste Gefahr von Overtrading, Tilt und Blow-up.","Kaum Validierung, hohe Impulsivität.","Verluste lösen emotionale Ketten aus.","Größe und Tempo eskalieren im Eifer."],
+   tips:["Externe Limits sind dein bester Freund: harte Stops, feste Größen, Tageslimit.","Reduziere Hebel deutlich, bis Konsistenz da ist.","Führe ein Emotions-Journal und erkenne deine Tilt-Auslöser.","Belohne dich für Disziplin, nicht für Action."]},
+ "DKIG":{emoji:"🌳",name:"Der Bewahrer",fam:"Navigatoren",
+   tag:"Ruhig, geduldig, instinktiv vorsichtig – du schützt, was du hast, mit Gelassenheit.",
+   desc:"Du bist defensiv und intuitiv, dabei emotional stabil und geduldig. Du triffst Entscheidungen aus dem Gefühl heraus, aber mit einem starken inneren Sicherheitskompass. Du jagst nichts hinterher und bleibst gelassen – ein besonnener, langfristig orientierter Typ, der selten überzieht.",
+   strengths:["Gelassen und geduldig.","Gutes Bauchgefühl für Risiken.","Schützt das Kapital instinktiv.","Wenig anfällig für Hektik und Hype."],
+   risks:["Übervorsicht lässt Chancen ungenutzt.","Bauchgefühl ohne Datenabgleich.","Zu defensiv, um Trends auszunutzen.","Entscheidungen schwer nachvollziehbar."],
+   tips:["Ergänze dein Gespür um ein paar harte Kennzahlen.","Erlaube dir gezielt etwas mehr Risiko bei klaren Chancen.","Dokumentiere, wann dein Bauch recht hatte.","Setze dir Wachstums- statt nur Schutzziele."]},
+ "DKIY":{emoji:"🦉",name:"Der Beobachter",fam:"Navigatoren",
+   tag:"Wach und schnell, aber vorsichtig und gelassen – du wartest klug, bevor du handelst.",
+   desc:"Du bist defensiv und intuitiv, schnell in der Wahrnehmung und emotional ausgeglichen. Du nimmst viel vom Markt wahr und reagierst zügig, gehst dabei aber kontrolliert und kapitalschonend vor. Deine Stärke ist die Beobachtung – du erkennst, was läuft, bevor andere es tun.",
+   strengths:["Schnelle, intuitive Wahrnehmung.","Defensiver Kapitalschutz.","Emotional ausgeglichen.","Gute Mustererkennung im Marktgeschehen."],
+   risks:["Vorsicht bremst die Umsetzung guter Beobachtungen.","Du siehst Chancen, traust dich aber nicht.","Bauchgefühl wird selten verifiziert.","Tempo ohne Größe lässt Potenzial liegen."],
+   tips:["Übersetze Beobachtungen in vordefinierte Trade-Pläne.","Erhöhe Größe schrittweise bei bewährten Setups.","Vertraue deinem Gespür mit klaren Stops im Rücken.","Halte fest, welche Beobachtungen sich auszahlen."]},
+ "DRIG":{emoji:"🧩",name:"Der Vorsichtige",fam:"Navigatoren",
+   tag:"Geduldig und instinktiv, aber zögernd – Sicherheit und Selbstzweifel ringen in dir.",
+   desc:"Du bist defensiv, intuitiv und geduldig, reagierst aber emotional stark auf Risiko und Fehler. Du spürst Chancen, lässt dich aber von Unsicherheit und Selbstzweifel bremsen. Dein Schutzinstinkt bewahrt dich vor großen Verlusten, hält dich aber auch klein – mehr Vertrauen in dich selbst ist dein Hebel.",
+   strengths:["Starker Schutzinstinkt fürs Kapital.","Geduld und Bedacht.","Feines Gespür für Gefahren.","Reflektiert und lernbereit."],
+   risks:["Selbstzweifel verhindern konsequentes Handeln.","Du verpasst Chancen aus Angst.","Fehler nagen lange an dir.","Entscheidungen werden zerredet."],
+   tips:["Starte klein, um Vertrauen aufzubauen – Umsetzung vor Größe.","Definiere feste Regeln, die dir Entscheidungen abnehmen.","Betrachte Verluste als Lerndaten, nicht als Versagen.","Führe ein Erfolgsjournal deiner guten Entscheidungen."]},
+ "DRIY":{emoji:"🌀",name:"Der Suchende",fam:"Navigatoren",
+   tag:"Schnell und instinktiv, aber unruhig und vorsichtig – du suchst noch deinen festen Stil.",
+   desc:"Du bist defensiv und intuitiv, dabei tempo-orientiert und emotional reagibel. Du willst aktiv sein und nichts verpassen, gleichzeitig hält dich dein Sicherheitsbedürfnis zurück – das erzeugt innere Unruhe und Suche. Mit Struktur und etwas Selbstvertrauen kann aus dieser Energie ein klarer, eigener Stil werden.",
+   strengths:["Aufmerksam und schnell.","Vorsichtig mit dem Kapital.","Lernhungrig und beweglich.","Gespür für Marktstimmung."],
+   risks:["Innere Unruhe und Stilsuche.","Widersprüchliche Impulse (Action vs. Sicherheit).","Emotionale Reaktion auf Schwankungen.","Selbstzweifel nach Fehlern."],
+   tips:["Lege dich auf einen Markt und eine Methode fest und übe sie.","Reduziere Frequenz, bis dein Stil sitzt.","Arbeite mit festen Regeln gegen die innere Unruhe.","Sei geduldig mit dir – Konsistenz kommt vor Performance."]}
+};
+
+const SELF = {
+  S:{label:"Selbstsicher", text:"Als <b>selbstsicherer</b> Typ vertraust du deinen Entscheidungen und lässt dich von Rückschlägen nicht leicht erschüttern. Das gibt dir Handlungsstärke und Ruhe – achte aber darauf, dass Selbstvertrauen nicht in Selbstüberschätzung kippt. Hinterfrage deine Annahmen gerade dann, wenn du dir besonders sicher bist."},
+  H:{label:"Hinterfragend", text:"Als <b>hinterfragender</b> Typ reflektierst du dein Handeln intensiv und willst dich ständig verbessern. Das macht dich lernfähig und selbstkritisch – pass aber auf, dass Zweifel dich nicht lähmen oder dein Selbstvertrauen untergraben. Lerne, gute Entscheidungen als gut anzuerkennen, auch wenn das Ergebnis mal nicht stimmt."}
+};
+
+const REFLECT = {
+ risk:{O:"Frag dich ehrlich: Risikierst du, weil deine Strategie es verlangt – oder weil der Nervenkitzel dich reizt?",D:"Frag dich ehrlich: Schützt deine Vorsicht dein Kapital – oder hält sie dich von verdientem Wachstum ab?"},
+ emotion:{R:"Beobachte morgen bewusst: An welcher Stelle übernimmt das Gefühl das Steuer von deinem Plan?",K:"Deine Ruhe ist Gold wert – nutze sie, um in Phasen, in denen andere panisch werden, klar zu profitieren."},
+ decision:{I:"Dein Bauchgefühl ist ein Werkzeug. Überprüfst du regelmäßig, ob es wirklich besser ist als der Zufall?",A:"Deine Analyse ist stark – aber wartest du manchmal so lange auf Sicherheit, dass die Chance vorbei ist?"},
+ tempo:{Y:"Hohes Tempo fühlt sich produktiv an. Bringt dir jeder zusätzliche Trade wirklich einen Vorteil?",G:"Deine Geduld ist eine Stärke. Verwechselst du sie manchmal mit Zögern oder Untätigkeit?"}
+};
+
+/* ---------- State & Logic ---------- */
+const SCALE=[{v:-3,c:"disagree",s:"s1"},{v:-2,c:"disagree",s:"s2"},{v:-1,c:"disagree",s:"s3"},{v:0,c:"neutral",s:"s3"},{v:1,c:"agree",s:"s3"},{v:2,c:"agree",s:"s2"},{v:3,c:"agree",s:"s1"}];
+const PAGE_SIZE=5;
+const PAGES=Math.ceil(QUESTIONS.length/PAGE_SIZE);
+let answers=new Array(QUESTIONS.length).fill(null);
+let page=0;
+const $=id=>document.getElementById(id);
+
+function start(){ $("intro").classList.add("hide"); $("quiz").classList.remove("hide"); page=0; renderPage(); window.scrollTo(0,0); }
+
+function renderPage(){
+  const startI=page*PAGE_SIZE;
+  const endI=Math.min(startI+PAGE_SIZE,QUESTIONS.length);
+  $("qcount").textContent=`Seite ${page+1} von ${PAGES}`;
+  const answered=answers.filter(a=>a!==null).length;
+  $("qprog").textContent=`${answered} / ${QUESTIONS.length} beantwortet`;
+  $("barfill").style.width=(answered/QUESTIONS.length*100)+"%";
+  const host=$("qpage"); host.innerHTML="";
+  for(let i=startI;i<endI;i++){
+    const q=QUESTIONS[i], d=DIM[q.dim];
+    const item=document.createElement("div"); item.className="qitem";
+    const dots=SCALE.map(opt=>`<button class="dot ${opt.c} ${opt.s}${answers[i]===opt.v?' sel':''}" aria-label="${opt.v}" onclick="choose(${i},${opt.v})"></button>`).join("");
+    item.innerHTML=`
+      <div class="qnum">Frage ${i+1}<span class="dim">· ${d.name}</span></div>
+      <h3>${q.t}</h3>
+      <div class="likert">
+        <span class="lab">Stimme überhaupt nicht zu</span>
+        <div class="dots">${dots}</div>
+        <span class="lab r">Stimme voll zu</span>
+      </div>`;
+    host.appendChild(item);
+  }
+  $("prevbtn").classList.toggle("hide", page===0);
+  $("nextbtn").textContent = page===PAGES-1 ? "Auswerten →" : "Weiter →";
+  updateNav();
+  const card=$("qcard"); card.classList.remove("fade"); void card.offsetWidth; card.classList.add("fade");
+}
+
+function choose(i,v){
+  answers[i]=v;
+  // update only this question's dots
+  const host=$("qpage");
+  const items=host.children;
+  const localIdx=i-(page*PAGE_SIZE);
+  const dots=items[localIdx].querySelectorAll(".dot");
+  SCALE.forEach((opt,k)=>dots[k].classList.toggle("sel",answers[i]===opt.v));
+  // progress
+  const answered=answers.filter(a=>a!==null).length;
+  $("qprog").textContent=`${answered} / ${QUESTIONS.length} beantwortet`;
+  $("barfill").style.width=(answered/QUESTIONS.length*100)+"%";
+  updateNav();
+}
+
+function pageComplete(){
+  const startI=page*PAGE_SIZE, endI=Math.min(startI+PAGE_SIZE,QUESTIONS.length);
+  for(let i=startI;i<endI;i++) if(answers[i]===null) return false;
+  return true;
+}
+function updateNav(){
+  const done=pageComplete();
+  $("nextbtn").disabled=!done;
+  const startI=page*PAGE_SIZE, endI=Math.min(startI+PAGE_SIZE,QUESTIONS.length);
+  let open=0; for(let i=startI;i<endI;i++) if(answers[i]===null) open++;
+  $("pagehint").textContent = done ? "Alle beantwortet ✓" : `Noch ${open} Aussage${open>1?'n':''} offen`;
+}
+
+function nextPage(){
+  if(!pageComplete()) return;
+  if(page<PAGES-1){ page++; renderPage(); window.scrollTo({top:0,behavior:'smooth'}); }
+  else finish();
+}
+function prevPage(){ if(page>0){ page--; renderPage(); window.scrollTo({top:0,behavior:'smooth'}); } }
+
+function computeScores(){
+  const raw={risk:0,emotion:0,decision:0,tempo:0,self:0};
+  const cnt={risk:0,emotion:0,decision:0,tempo:0,self:0};
+  QUESTIONS.forEach((q,i)=>{ raw[q.dim]+=(answers[i]||0)*q.dir; cnt[q.dim]++; });
+  const out={};
+  for(const k in raw){ const max=cnt[k]*3; out[k]={raw:raw[k], posPct:Math.round((raw[k]+max)/(2*max)*100)}; }
+  return out;
+}
+
+function finish(){
+  const s=computeScores();
+  const code=(s.risk.posPct>=50?"O":"D")+(s.emotion.posPct>=50?"R":"K")+(s.decision.posPct>=50?"I":"A")+(s.tempo.posPct>=50?"Y":"G");
+  const selfL=s.self.posPct>=50?"H":"S";
+  const t=TYPES[code];
+  $("quiz").classList.add("hide"); $("result").classList.remove("hide");
+  $("rEmoji").textContent=t.emoji;
+  $("rCode").textContent=code.split("").join("-")+"-"+selfL;
+  $("rName").textContent=t.name+(selfL==="H"?" (–H)":" (–S)");
+  $("rFam").textContent="Familie der "+t.fam;
+  $("rTagline").textContent=t.tag;
+  $("rSelfMini").innerHTML="🪞 Selbstbild: "+SELF[selfL].label;
+  $("rDesc").textContent=t.desc;
+  const dimsEl=$("rDims"); dimsEl.innerHTML="";
+  ["risk","emotion","decision","tempo","self"].forEach(k=>{
+    const d=DIM[k], pos=s[k].posPct, toPos=pos>=50;
+    const on=toPos?d.pos:d.neg, width=toPos?pos:(100-pos), color=on.color, fromLeft=toPos;
+    const row=document.createElement("div"); row.className="dimrow";
+    row.innerHTML=`
+      <div class="dlabels">
+        <span class="${toPos?'on':'off'}">${d.pos.label}</span>
+        <span class="mid">${d.name.toUpperCase()}</span>
+        <span class="${!toPos?'on':'off'}">${d.neg.label}</span>
+      </div>
+      <div class="track"><div class="midl"></div><i style="${fromLeft?'left:0;':'right:0;'}width:0;background:${color}"></i></div>
+      <div class="pct"><b style="color:${color}">${Math.round(toPos?pos:100-pos)}%</b> ${on.label}</div>`;
+    dimsEl.appendChild(row);
+    const barI=row.querySelector(".track > i");
+    requestAnimationFrame(()=>{ setTimeout(()=>{ barI.style.width=width+"%"; },60); });
+  });
+  fillList("rStrengths",t.strengths);
+  fillList("rRisks",t.risks);
+  fillList("rTips",t.tips);
+  $("rSelfBox").innerHTML=SELF[selfL].text;
+  const mains=["risk","emotion","decision","tempo"];
+  let strongest=mains[0], maxDev=-1;
+  mains.forEach(k=>{const dev=Math.abs(s[k].posPct-50); if(dev>maxDev){maxDev=dev;strongest=k;}});
+  const pole=s[strongest].posPct>=50?DIM[strongest].pos.L:DIM[strongest].neg.L;
+  $("rReflect").textContent=REFLECT[strongest][pole];
+  window.__result={code,selfL,name:t.name,fam:t.fam,scores:s};
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function fillList(id,arr){ const el=$(id); el.innerHTML=""; arr.forEach(x=>{const li=document.createElement("li");li.textContent=x;el.appendChild(li);}); }
+
+function restart(){ answers=new Array(QUESTIONS.length).fill(null); page=0; $("result").classList.add("hide"); $("intro").classList.remove("hide"); window.scrollTo(0,0); }
+
+function copyResult(){
+  const r=window.__result; if(!r)return;
+  const txt=`Mein Trader IQ Ergebnis: ${r.name} (${r.code}-${r.selfL}) – Familie der ${r.fam}.\n`+
+    `Risiko: ${r.scores.risk.posPct>=50?'Offensiv':'Defensiv'} · Emotion: ${r.scores.emotion.posPct>=50?'Reaktiv':'Kontrolliert'} · `+
+    `Entscheidung: ${r.scores.decision.posPct>=50?'Intuitiv':'Analytisch'} · Tempo: ${r.scores.tempo.posPct>=50?'Dynamisch':'Geduldig'} · `+
+    `Selbstbild: ${r.selfL==='H'?'Hinterfragend':'Selbstsicher'}.\nMach den Test bei Trader IQ.`;
+  const btn=event.target;
+  navigator.clipboard.writeText(txt).then(()=>{const o=btn.textContent;btn.textContent="✓ Kopiert!";setTimeout(()=>btn.textContent=o,1600);}).catch(()=>alert(txt));
+}
+</script>
+</body>
+</html>

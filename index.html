@@ -165,6 +165,37 @@
     </div>
   </section>
 
+  <!-- ============ VERIFY (nach dem Test, vor dem Ergebnis) ============ -->
+  <section id="verify" class="hide">
+    <style>
+      #verify .vlab{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:12px 0 5px;letter-spacing:.3px}
+      #verify .vinp{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:11px;font-size:15px;color:var(--ink);background:#fff;outline:none;font-family:inherit}
+      #verify .vinp:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(238,118,26,.12)}
+    </style>
+    <div class="card section fade" style="text-align:center">
+      <div style="font-size:50px;line-height:1">🔓</div>
+      <h1 style="font-size:28px;color:var(--charcoal);margin:8px 0 8px;letter-spacing:-.4px">Dein Ergebnis ist fertig!</h1>
+      <p style="color:#4b5565;max-width:52ch;margin:0 auto">Bestätige kurz deine Handynummer per SMS-Code — dann schalten wir deine persönliche Auswertung frei.</p>
+      <div style="max-width:420px;margin:20px auto 0;text-align:left">
+        <label class="vlab">Name</label>
+        <input id="vName" class="vinp" type="text" autocomplete="name" placeholder="Vor- und Nachname">
+        <label class="vlab">E-Mail</label>
+        <input id="vEmail" class="vinp" type="email" autocomplete="email" placeholder="name@email.de">
+        <label class="vlab">Handynummer</label>
+        <input id="vPhone" class="vinp" type="tel" autocomplete="tel" placeholder="z. B. 0151 23456789">
+        <button class="btn" id="vSendBtn" style="width:100%;margin-top:16px" onclick="sendCode(false)">Code per SMS senden</button>
+        <div id="vCodeWrap" class="hide" style="margin-top:18px">
+          <label class="vlab">SMS-Code</label>
+          <input id="vCode" class="vinp" inputmode="numeric" autocomplete="one-time-code" placeholder="6-stelliger Code">
+          <button class="btn" id="vCheckBtn" style="width:100%;margin-top:12px" onclick="checkCode()">Bestätigen &amp; Ergebnis anzeigen →</button>
+          <button class="btn ghost" style="width:100%;margin-top:8px" onclick="sendCode(true)">Code erneut senden</button>
+        </div>
+        <div id="vMsg" style="margin-top:12px;font-size:13.5px;min-height:18px;color:var(--muted)"></div>
+        <p style="color:var(--muted2);font-size:11.5px;margin-top:14px;line-height:1.5">Mit dem Absenden stimmst du zu, dass Trader IQ dich zu deinem Ergebnis kontaktiert. Deine Daten werden vertraulich behandelt.</p>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ RESULT ============ -->
   <section id="result" class="hide">
     <div class="card res-hero fade">
@@ -482,7 +513,13 @@ function finish(){
   const code=(s.risk.posPct>=50?"O":"D")+(s.emotion.posPct>=50?"R":"K")+(s.decision.posPct>=50?"I":"A")+(s.tempo.posPct>=50?"Y":"G");
   const selfL=s.self.posPct>=50?"H":"S";
   const t=TYPES[code];
-  $("quiz").classList.add("hide"); $("result").classList.remove("hide");
+  window.__result={code,selfL,name:t.name,fam:t.fam,scores:s};
+  showResultGate();
+}
+
+function renderResult(){
+  const R=window.__result; if(!R) return;
+  const s=R.scores, code=R.code, selfL=R.selfL, t=TYPES[code];
   $("rEmoji").textContent=t.emoji;
   $("rCode").textContent=code.split("").join("-")+"-"+selfL;
   $("rName").textContent=t.name+(selfL==="H"?" (–H)":" (–S)");
@@ -516,13 +553,78 @@ function finish(){
   mains.forEach(k=>{const dev=Math.abs(s[k].posPct-50); if(dev>maxDev){maxDev=dev;strongest=k;}});
   const pole=s[strongest].posPct>=50?DIM[strongest].pos.L:DIM[strongest].neg.L;
   $("rReflect").textContent=REFLECT[strongest][pole];
-  window.__result={code,selfL,name:t.name,fam:t.fam,scores:s};
+}
+
+/* ---- Optionskompass: Lead-Capture + Telefon-Verifizierung (Twilio) ---- */
+const CONFIG={
+  verifyRequired:true,
+  source:"Optionskompass",
+  // ▼▼▼ HIER die n8n-Webhook-Basis eintragen (ohne Slash am Ende),
+  //     z. B. "https://DEINE-INSTANZ.app.n8n.cloud/webhook"
+  n8nBase:"https://n8n.traderiq.net/webhook",
+  ep:{ start:"/tiq-verify-start", check:"/tiq-verify-check", submit:"/tiq-submit" }
+};
+const QP=new URLSearchParams(location.search);
+function qp(){ for(let i=0;i<arguments.length;i++){ const v=QP.get(arguments[i]); if(v) return v; } return ""; }
+const LEAD={ name:qp("name","n","fullname"), email:qp("email","e","mail"), phone:qp("phone","p","tel"), lid:qp("lid","lead","id"), source:qp("source","utm_campaign")||CONFIG.source };
+let __verifyToken=null;
+
+function showResultGate(){
+  if(!CONFIG.verifyRequired || QP.get("demo")==="1"){ revealResult(); return; }
+  $("quiz").classList.add("hide");
+  $("verify").classList.remove("hide");
+  $("vName").value=LEAD.name; $("vEmail").value=LEAD.email; $("vPhone").value=LEAD.phone;
   window.scrollTo({top:0,behavior:'smooth'});
+}
+function revealResult(){
+  const v=$("verify"); if(v) v.classList.add("hide");
+  $("quiz").classList.add("hide");
+  $("result").classList.remove("hide");
+  renderResult();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function api(path,body){
+  const r=await fetch(CONFIG.n8nBase+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  return r.json();
+}
+function vmsg(text,kind){ const el=$("vMsg"); el.textContent=text||""; el.style.color = kind==="err"?"var(--bad)":(kind==="ok"?"var(--good)":"var(--muted)"); }
+
+async function sendCode(resend){
+  const name=$("vName").value.trim(), email=$("vEmail").value.trim(), phone=$("vPhone").value.trim();
+  if(!name||!email||!phone){ vmsg("Bitte Name, E-Mail und Handynummer ausfüllen.","err"); return; }
+  if(!/^\S+@\S+\.\S+$/.test(email)){ vmsg("Bitte eine gültige E-Mail-Adresse eingeben.","err"); return; }
+  LEAD.name=name; LEAD.email=email; LEAD.phone=phone;
+  const btn=$("vSendBtn"); btn.disabled=true; vmsg(resend?"Sende neuen Code…":"Sende Code…");
+  try{
+    const res=await api(CONFIG.ep.start,{phone});
+    if(res&&res.ok){ $("vCodeWrap").classList.remove("hide"); vmsg("Wir haben dir einen SMS-Code geschickt.","ok"); $("vCode").focus(); }
+    else { vmsg(res&&res.error==="invalid_phone"?"Diese Nummer sieht nicht gültig aus.":"Konnte keinen Code senden — bitte Nummer prüfen.","err"); }
+  }catch(e){ vmsg("Verbindungsfehler. Bitte später erneut versuchen.","err"); }
+  btn.disabled=false;
+}
+async function checkCode(){
+  const code=$("vCode").value.trim(), phone=LEAD.phone;
+  if(!/^\d{4,8}$/.test(code)){ vmsg("Bitte den 6-stelligen Code eingeben.","err"); return; }
+  const btn=$("vCheckBtn"); btn.disabled=true; vmsg("Prüfe Code…");
+  try{
+    const res=await api(CONFIG.ep.check,{phone,code});
+    if(res&&res.ok&&res.verified){ __verifyToken=res.token; vmsg("Verifiziert! Lade dein Ergebnis…","ok"); await submitLead(); revealResult(); }
+    else { vmsg("Code stimmt nicht oder ist abgelaufen. Bitte erneut versuchen.","err"); btn.disabled=false; }
+  }catch(e){ vmsg("Verbindungsfehler. Bitte erneut versuchen.","err"); btn.disabled=false; }
+}
+async function submitLead(){
+  const r=window.__result; if(!r) return;
+  const dims={ risiko:r.scores.risk.posPct, emotion:r.scores.emotion.posPct, entscheidung:r.scores.decision.posPct, tempo:r.scores.tempo.posPct, selbstbild:r.scores.self.posPct };
+  try{ await api(CONFIG.ep.submit,{ token:__verifyToken, name:LEAD.name, email:LEAD.email, phone:LEAD.phone, lid:LEAD.lid, source:LEAD.source, result:{ code:r.code, name:r.name, family:r.fam, selfLabel:r.selfL, dims } }); }
+  catch(e){ /* Ergebnis wird dem Nutzer trotzdem gezeigt */ }
 }
 
 function fillList(id,arr){ const el=$(id); el.innerHTML=""; arr.forEach(x=>{const li=document.createElement("li");li.textContent=x;el.appendChild(li);}); }
 
-function restart(){ answers=new Array(QUESTIONS.length).fill(null); page=0; $("result").classList.add("hide"); $("intro").classList.remove("hide"); window.scrollTo(0,0); }
+function restart(){ answers=new Array(QUESTIONS.length).fill(null); page=0; __verifyToken=null;
+  $("result").classList.add("hide"); $("verify").classList.add("hide");
+  const cw=$("vCodeWrap"); if(cw) cw.classList.add("hide"); const vc=$("vCode"); if(vc) vc.value="";
+  $("intro").classList.remove("hide"); window.scrollTo(0,0); }
 
 function copyResult(){
   const r=window.__result; if(!r)return;

@@ -620,6 +620,21 @@ function revealResult(){
   renderResult();
   window.scrollTo({top:0,behavior:'smooth'});
 }
+function showEmailConfirmation(){
+  $("quiz").classList.add("hide");
+  $("result").classList.add("hide");
+  const v=$("verify");
+  if(v){
+    v.classList.remove("hide");
+    v.innerHTML='<div class="card section fade" style="text-align:center">'+
+      '<div style="font-size:52px;line-height:1">📧</div>'+
+      '<h1 style="font-size:27px;color:var(--charcoal);margin:10px 0 10px;letter-spacing:-.4px">Geschafft – deine Auswertung ist unterwegs!</h1>'+
+      '<p style="color:#4b5565;max-width:48ch;margin:0 auto 8px">Wir haben dir deine persönliche Trader-Typ-Auswertung per E-Mail geschickt'+(LEAD.email?' an <b>'+LEAD.email.replace(/</g,"&lt;")+'</b>':'')+'.</p>'+
+      '<p style="color:#4b5565;max-width:48ch;margin:0 auto">Öffne die E-Mail und klick auf den Button darin, um dein Ergebnis zu sehen. Schau zur Sicherheit auch im <b>Spam-Ordner</b> nach.</p>'+
+      '</div>';
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 async function api(path,body){
   const r=await fetch(CONFIG.n8nBase+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
   return r.json();
@@ -645,7 +660,7 @@ async function checkCode(){
   const btn=$("vCheckBtn"); btn.disabled=true; vmsg("Prüfe Code…");
   try{
     const res=await api(CONFIG.ep.check,{phone,code});
-    if(res&&res.ok&&res.verified){ __verifyToken=res.token; vmsg("Verifiziert! Lade dein Ergebnis…","ok"); await submitLead(); revealResult(); }
+    if(res&&res.ok&&res.verified){ __verifyToken=res.token; vmsg("Verifiziert! ✓","ok"); await submitLead(); showEmailConfirmation(); }
     else { vmsg("Code stimmt nicht oder ist abgelaufen. Bitte erneut versuchen.","err"); btn.disabled=false; }
   }catch(e){ vmsg("Verbindungsfehler. Bitte erneut versuchen.","err"); btn.disabled=false; }
 }

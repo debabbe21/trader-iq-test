@@ -672,6 +672,27 @@ function copyResult(){
   const btn=event.target;
   navigator.clipboard.writeText(txt).then(()=>{const o=btn.textContent;btn.textContent="✓ Kopiert!";setTimeout(()=>btn.textContent=o,1600);}).catch(()=>alert(txt));
 }
+
+/* ---- Ergebnis-Seite per Link (E-Mail-Auswertung) ----
+   Aufruf: ?ergebnis=<CODE>&self=<H|S>&r=&e=&d=&t=&s=
+   z. B. /?ergebnis=ORIY&self=H&r=72&e=40&d=55&t=63&s=48
+   Zeigt das Ergebnis direkt an (Quiz/Verify werden übersprungen). */
+(function(){
+  let erg=(qp("ergebnis","result","typ")||"").toUpperCase().replace(/[^A-Z]/g,"");
+  if(!erg) return;
+  const code=erg.slice(0,4);
+  if(!TYPES[code]) return;
+  const selfRaw=(qp("self","sb")||erg.slice(4,5)||"S").toUpperCase();
+  const selfL=selfRaw==="H"?"H":"S";
+  const num=(k,def)=>{const v=parseInt(QP.get(k),10);return isNaN(v)?def:Math.max(0,Math.min(100,v));};
+  const t=TYPES[code];
+  window.__result={code,selfL,name:t.name,fam:t.fam,scores:{
+    risk:{posPct:num("r",50)}, emotion:{posPct:num("e",50)},
+    decision:{posPct:num("d",50)}, tempo:{posPct:num("t",50)}, self:{posPct:num("s",50)}
+  }};
+  const intro=$("intro"); if(intro) intro.classList.add("hide");
+  revealResult();
+})();
 </script>
 </body>
 </html>

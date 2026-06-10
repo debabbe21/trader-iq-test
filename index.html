@@ -664,10 +664,33 @@ async function checkCode(){
     else { vmsg("Code stimmt nicht oder ist abgelaufen. Bitte erneut versuchen.","err"); btn.disabled=false; }
   }catch(e){ vmsg("Verbindungsfehler. Bitte erneut versuchen.","err"); btn.disabled=false; }
 }
+function buildFullText(){
+  const r=window.__result; if(!r) return "";
+  const t=TYPES[r.code]||{};
+  const P=k=>(r.scores[k]?r.scores[k].posPct:50);
+  const dl=(pct,lo,hi)=>pct>=50?(hi+" "+pct+"%"):(lo+" "+(100-pct)+"%");
+  const prof=[
+    "• Risiko: "+dl(P('risk'),"Defensiv","Offensiv"),
+    "• Emotion: "+dl(P('emotion'),"Kontrolliert","Reaktiv"),
+    "• Entscheidung: "+dl(P('decision'),"Analytisch","Intuitiv"),
+    "• Tempo: "+dl(P('tempo'),"Geduldig","Dynamisch"),
+    "• Selbstbild: "+(r.selfL==='H'?"Hinterfragend":"Selbstsicher")
+  ].join("\n");
+  const lst=a=>(a||[]).map(x=>"• "+x).join("\n");
+  const link="https://trader-iq-test.vercel.app/?ergebnis="+r.code+"&self="+r.selfL+"&r="+P('risk')+"&e="+P('emotion')+"&d="+P('decision')+"&t="+P('tempo')+"&s="+P('self');
+  return "TRADER-TYP-AUSWERTUNG (Optionskompass)\n"+
+    "Typ: "+(t.name||r.name)+" ("+r.code+"-"+r.selfL+") – Familie "+(t.fam||r.fam)+"\n\n"+
+    "WER DU BIST:\n"+(t.desc||"")+"\n\n"+
+    "DEIN PROFIL ÜBER DIE 5 DIMENSIONEN:\n"+prof+"\n\n"+
+    "STÄRKEN:\n"+lst(t.strengths)+"\n\n"+
+    "RISIKEN:\n"+lst(t.risks)+"\n\n"+
+    "KONKRETE EMPFEHLUNGEN:\n"+lst(t.tips)+"\n\n"+
+    "Volle Auswertung (Ergebnis-Seite): "+link;
+}
 async function submitLead(){
   const r=window.__result; if(!r) return;
   const dims={ risiko:r.scores.risk.posPct, emotion:r.scores.emotion.posPct, entscheidung:r.scores.decision.posPct, tempo:r.scores.tempo.posPct, selbstbild:r.scores.self.posPct };
-  try{ await api(CONFIG.ep.submit,{ token:__verifyToken, name:LEAD.name, email:LEAD.email, phone:LEAD.phone, lid:LEAD.lid, source:LEAD.source, result:{ code:r.code, name:r.name, family:r.fam, selfLabel:r.selfL, dims } }); }
+  try{ await api(CONFIG.ep.submit,{ token:__verifyToken, name:LEAD.name, email:LEAD.email, phone:LEAD.phone, lid:LEAD.lid, source:LEAD.source, result:{ code:r.code, name:r.name, family:r.fam, selfLabel:r.selfL, dims, fullText:buildFullText() } }); }
   catch(e){ /* Ergebnis wird dem Nutzer trotzdem gezeigt */ }
 }
 

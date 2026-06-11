@@ -219,7 +219,46 @@
         <label class="vlab">E-Mail</label>
         <input id="vEmail" class="vinp" type="email" autocomplete="email" placeholder="name@email.de">
         <label class="vlab">Handynummer</label>
-        <input id="vPhone" class="vinp" type="tel" autocomplete="tel" placeholder="z. B. 0151 23456789">
+        <select id="vCC" class="vinp" style="margin-bottom:8px">
+          <option value="+49" selected>🇩🇪 Deutschland +49</option>
+          <option value="+43">🇦🇹 Österreich +43</option>
+          <option value="+41">🇨🇭 Schweiz +41</option>
+          <option value="+32">🇧🇪 Belgien +32</option>
+          <option value="+359">🇧🇬 Bulgarien +359</option>
+          <option value="+45">🇩🇰 Dänemark +45</option>
+          <option value="+372">🇪🇪 Estland +372</option>
+          <option value="+358">🇫🇮 Finnland +358</option>
+          <option value="+33">🇫🇷 Frankreich +33</option>
+          <option value="+30">🇬🇷 Griechenland +30</option>
+          <option value="+44">🇬🇧 Großbritannien +44</option>
+          <option value="+353">🇮🇪 Irland +353</option>
+          <option value="+39">🇮🇹 Italien +39</option>
+          <option value="+385">🇭🇷 Kroatien +385</option>
+          <option value="+371">🇱🇻 Lettland +371</option>
+          <option value="+423">🇱🇮 Liechtenstein +423</option>
+          <option value="+370">🇱🇹 Litauen +370</option>
+          <option value="+352">🇱🇺 Luxemburg +352</option>
+          <option value="+356">🇲🇹 Malta +356</option>
+          <option value="+31">🇳🇱 Niederlande +31</option>
+          <option value="+47">🇳🇴 Norwegen +47</option>
+          <option value="+48">🇵🇱 Polen +48</option>
+          <option value="+351">🇵🇹 Portugal +351</option>
+          <option value="+40">🇷🇴 Rumänien +40</option>
+          <option value="+46">🇸🇪 Schweden +46</option>
+          <option value="+421">🇸🇰 Slowakei +421</option>
+          <option value="+386">🇸🇮 Slowenien +386</option>
+          <option value="+34">🇪🇸 Spanien +34</option>
+          <option value="+420">🇨🇿 Tschechien +420</option>
+          <option value="+90">🇹🇷 Türkei +90</option>
+          <option value="+36">🇭🇺 Ungarn +36</option>
+          <option value="+1">🇺🇸 USA / Kanada +1</option>
+          <option value="+971">🇦🇪 VAE +971</option>
+          <option value="+57">🇨🇴 Kolumbien +57</option>
+          <option value="+52">🇲🇽 Mexiko +52</option>
+          <option value="+357">🇨🇾 Zypern +357</option>
+        </select>
+        <input id="vPhone" class="vinp" type="tel" autocomplete="tel" placeholder="151 23456789">
+        <div style="color:var(--muted2);font-size:11px;margin-top:5px;line-height:1.45">Land wählen, dann Nummer <b>ohne führende 0</b> (z. B. 151 23456789).</div>
         <button class="btn" id="vSendBtn" style="width:100%;margin-top:16px" onclick="sendCode(false)">Code per SMS senden</button>
         <div id="vCodeWrap" class="hide" style="margin-top:18px">
           <label class="vlab">SMS-Code</label>
@@ -641,10 +680,20 @@ async function api(path,body){
 }
 function vmsg(text,kind){ const el=$("vMsg"); el.textContent=text||""; el.style.color = kind==="err"?"var(--bad)":(kind==="ok"?"var(--good)":"var(--muted)"); }
 
+function normalizePhone(raw,cc){
+  let n=(raw||"").replace(/[^\d+]/g,"");
+  if(n.charAt(0)==="+") return n;
+  if(n.slice(0,2)==="00") return "+"+n.slice(2);
+  if(n.charAt(0)==="0") n=n.replace(/^0+/,"");
+  return (cc||"+49")+n;
+}
 async function sendCode(resend){
-  const name=$("vName").value.trim(), email=$("vEmail").value.trim(), phone=$("vPhone").value.trim();
-  if(!name||!email||!phone){ vmsg("Bitte Name, E-Mail und Handynummer ausfüllen.","err"); return; }
+  const name=$("vName").value.trim(), email=$("vEmail").value.trim(), rawPhone=$("vPhone").value.trim();
+  const cc=($("vCC")&&$("vCC").value)||"+49";
+  if(!name||!email||!rawPhone){ vmsg("Bitte Name, E-Mail und Handynummer ausfüllen.","err"); return; }
   if(!/^\S+@\S+\.\S+$/.test(email)){ vmsg("Bitte eine gültige E-Mail-Adresse eingeben.","err"); return; }
+  const phone=normalizePhone(rawPhone,cc);
+  if(!/^\+\d{8,15}$/.test(phone)){ vmsg("Bitte eine gültige Handynummer eingeben (ohne führende 0).","err"); return; }
   LEAD.name=name; LEAD.email=email; LEAD.phone=phone;
   const btn=$("vSendBtn"); btn.disabled=true; vmsg(resend?"Sende neuen Code…":"Sende Code…");
   try{
